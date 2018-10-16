@@ -7,7 +7,6 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -18,13 +17,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
-
-import com.example.oanna.test.data.model.Api;
+import com.example.oanna.test.networking.Api;
 import com.example.oanna.test.data.model.User;
-import com.example.oanna.test.data.model.UsersResponse;
-
+import com.example.oanna.test.networking.responses.UsersResponse;
 import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -34,11 +30,84 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     List<User> users;
+    RecyclerView recyclerView;
+    RecyclerViewAdapter adapter;
+    RecyclerView.LayoutManager layoutManager;
+    static int page = 0;
+    Retrofit retrofit;
+    Api api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initDrawer();
+        initRecyclerView();
+        getUsers();
+
+        adapter.setOnBottomReachedListener(new RecyclerViewAdapter.OnBottomReachedListener() {
+            @Override
+            public void onBottomReached(int position) {
+                page++;
+                Log.d("**********", " page:" + page);
+                Call<UsersResponse> call = api.getResponse(page, "20", "abc");
+                call.enqueue(new Callback<UsersResponse>() {
+                    @Override
+                    public void onResponse(Call<UsersResponse> call, Response<UsersResponse> response) {
+                        UsersResponse usersResponse = response.body();
+                        users = usersResponse.usersList;
+                        adapter.addAllItems(users);
+                    }
+
+                    @Override
+                    public void onFailure(Call<UsersResponse> call, Throwable t) {
+                        Log.d("OnFailure", t.getMessage());
+                        Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
+
+    }
+
+    private void initRecyclerView() {
+        recyclerView = findViewById(R.id.recycler_view);
+        recyclerView = findViewById(R.id.recycler_view);
+        adapter = new RecyclerViewAdapter(this);
+        recyclerView.setAdapter(adapter);
+        layoutManager = new LinearLayoutManager(this);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
+                ((LinearLayoutManager) layoutManager).getOrientation());
+        recyclerView.addItemDecoration(dividerItemDecoration);
+
+        recyclerView.setLayoutManager(layoutManager);
+    }
+
+    private void getUsers() {
+        retrofit = new Retrofit.Builder().baseUrl(Api.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create()).build();
+        api = retrofit.create(Api.class);
+        Call<UsersResponse> call = api.getResponse(page, "20", "abc");
+        call.enqueue(new Callback<UsersResponse>() {
+            @Override
+            public void onResponse(Call<UsersResponse> call, Response<UsersResponse> response) {
+                UsersResponse usersResponse = response.body();
+                users = usersResponse.usersList;
+
+                adapter.addAllItems(users);
+            }
+
+            @Override
+            public void onFailure(Call<UsersResponse> call, Throwable t) {
+                Log.d("OnFailure", t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void initDrawer() {
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -60,46 +129,6 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        getUsers();
-
-    }
-
-    private void getUsers() {
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(Api.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build();
-        Api api = retrofit.create(Api.class);
-        Call<UsersResponse> call = api.getResponse();
-        call.enqueue(new Callback<UsersResponse>() {
-            @Override
-            public void onResponse(Call<UsersResponse> call, Response<UsersResponse> response) {
-                UsersResponse usersResponse = response.body();
-                users = usersResponse.usersList;
-                for (User u : users) {
-                    Log.d("name", u.name.getFirsName() + "  " + u.name.getLastName());
-                }
-                initRecyclerView();
-            }
-
-            @Override
-            public void onFailure(Call<UsersResponse> call, Throwable t) {
-                Log.d("ONFailure", t.getMessage());
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
-
-    }
-
-    private void initRecyclerView() {
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        RecyclerViewAdapter adapter = new RecyclerViewAdapter(this, users);
-        recyclerView.setAdapter(adapter);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
-                ((LinearLayoutManager) layoutManager).getOrientation());
-        recyclerView.addItemDecoration(dividerItemDecoration);
-
-        recyclerView.setLayoutManager(layoutManager);
     }
 
     @Override

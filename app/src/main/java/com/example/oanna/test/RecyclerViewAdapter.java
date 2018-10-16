@@ -8,10 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.bumptech.glide.Glide;
 import com.example.oanna.test.data.model.User;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,12 +18,13 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
     private static final String TAG = "RecyclerViewAdapter";
+    OnBottomReachedListener onBottomReachedListener;
 
-    private List<User> mUsers = new ArrayList<>();
+    private List<User> mUsers;
     private Context mContext;
 
-    public RecyclerViewAdapter(Context mContext, List<User> mUsers) {
-        this.mUsers = mUsers;
+    public RecyclerViewAdapter(Context mContext) {
+        this.mUsers = new ArrayList<>();
         this.mContext = mContext;
     }
 
@@ -48,11 +47,21 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.userDescription.setText(description);
 
         holder.userTime.setText(currentUser.getTime());
-        if(position %3 !=0){
+        if (position % 3 != 0) {
             holder.attachment.setVisibility(View.INVISIBLE);
-        }else{
+        } else {
             holder.attachment.setVisibility(View.VISIBLE);
         }
+
+        if (position == mUsers.size() - 3) {
+            onBottomReachedListener.onBottomReached(position);
+
+        }
+    }
+
+    public void addAllItems(List<User> items) {
+        mUsers.addAll(items);
+        notifyDataSetChanged();
     }
 
     @Override
@@ -78,5 +87,16 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             star = itemView.findViewById(R.id.star_icon);
             attachment = itemView.findViewById(R.id.attach_icon);
         }
+    }
+
+    public void setOnBottomReachedListener(OnBottomReachedListener onBottomReachedListener) {
+
+        this.onBottomReachedListener = onBottomReachedListener;
+    }
+
+    public interface OnBottomReachedListener {
+
+        void onBottomReached(int position);
+
     }
 }
