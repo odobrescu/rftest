@@ -13,6 +13,7 @@ import com.bumptech.glide.Glide;
 import com.example.oanna.test.data.model.User;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -20,10 +21,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     private static final String TAG = "RecyclerViewAdapter";
 
-    private ArrayList<User> mUsers = new ArrayList<>();
+    private List<User> mUsers = new ArrayList<>();
     private Context mContext;
 
-    public RecyclerViewAdapter( Context mContext, ArrayList<User> mUsers) {
+    public RecyclerViewAdapter(Context mContext, List<User> mUsers) {
         this.mUsers = mUsers;
         this.mContext = mContext;
     }
@@ -43,10 +44,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         Glide.with(mContext).asBitmap().load(currentUser.getPictureURL()).into(holder.userImage);
 
         holder.userName.setText(currentUser.getName());
-        String description = currentUser.getAge()+" years from "+ currentUser.getNationality();
+        String description = currentUser.getDescription();
         holder.userDescription.setText(description);
 
-        holder.userTime.setText(currentUser.getRegisteredDate());
+        holder.userTime.setText(currentUser.getTime());
     }
 
     @Override
@@ -54,7 +55,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return mUsers.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         CircleImageView userImage;
         TextView userName;

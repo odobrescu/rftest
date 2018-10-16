@@ -3,6 +3,9 @@ package com.example.oanna.test;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,9 +15,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import com.example.oanna.test.data.model.Api;
+import com.example.oanna.test.data.model.User;
+import com.example.oanna.test.data.model.UsersResponse;
+
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    List<User> users;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,10 +57,41 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        getUsers();
+
     }
 
-    private void getUsers(){
-        
+    private void getUsers() {
+        Retrofit retrofit = new Retrofit.Builder().baseUrl(Api.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create()).build();
+        Api api = retrofit.create(Api.class);
+        Call<UsersResponse> call = api.getResponse();
+        call.enqueue(new Callback<UsersResponse>() {
+            @Override
+            public void onResponse(Call<UsersResponse> call, Response<UsersResponse> response) {
+                UsersResponse usersResponse = response.body();
+                users = usersResponse.usersList;
+                for (User u : users) {
+                    Log.d("name", u.name.getFirsName() + "  " + u.name.getLastName());
+                }
+                initRecyclerView();
+            }
+
+            @Override
+            public void onFailure(Call<UsersResponse> call, Throwable t) {
+                Log.d("ONFailure", t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+
+    }
+
+    private void initRecyclerView() {
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        RecyclerViewAdapter adapter = new RecyclerViewAdapter(this, users);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
     @Override
