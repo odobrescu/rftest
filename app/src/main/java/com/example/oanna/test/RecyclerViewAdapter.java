@@ -48,6 +48,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.userDescription.setText(description);
 
         holder.userTime.setText(currentUser.getTime());
+        if(position %3 !=0){
+            holder.attachment.setVisibility(View.INVISIBLE);
+        }else{
+            holder.attachment.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

@@ -26,7 +26,9 @@ public class User {
     public Registered registered;
 
     public String getName() {
-        return name.getLastName() + " " + name.getFirsName();
+        return name.getLastName().substring(0, 1).toUpperCase() +  name.getLastName().substring(1)
+                + " " +
+                name.getFirsName().substring(0, 1).toUpperCase() +  name.getFirsName().substring(1);
     }
 
     public String getDescription() {
