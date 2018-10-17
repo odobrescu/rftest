@@ -11,7 +11,7 @@ public interface Api {
     String BASE_URL = "https://randomuser.me/";
 
     @GET("api/")
-    Call<UsersResponse> getResponse(@Query("page") int page, @Query("results") String results, @Query("seed") String seed);
+    Call<UsersResponse> getResponse(@Query("page") int page, @Query("results") String results);
 
 
 }

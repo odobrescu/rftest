@@ -17,10 +17,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+
 import com.example.oanna.test.networking.Api;
 import com.example.oanna.test.data.model.User;
 import com.example.oanna.test.networking.responses.UsersResponse;
+
 import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -46,26 +49,13 @@ public class MainActivity extends AppCompatActivity
         initRecyclerView();
         getUsers();
 
+        //TODO  Found issue with api. When changing the page numer and calling https://randomuser.me/api/?page=1&results=40&seed=abc returns the same first 20 Users.
+        //TODO    Only when calling https://randomuser.me/api/?page=0&results=40&seed=abc or https://randomuser.me/api/?page=1&results=20, without seed, returns different lists
         adapter.setOnBottomReachedListener(new RecyclerViewAdapter.OnBottomReachedListener() {
             @Override
             public void onBottomReached(int position) {
                 page++;
-                Log.d("**********", " page:" + page);
-                Call<UsersResponse> call = api.getResponse(page, "20", "abc");
-                call.enqueue(new Callback<UsersResponse>() {
-                    @Override
-                    public void onResponse(Call<UsersResponse> call, Response<UsersResponse> response) {
-                        UsersResponse usersResponse = response.body();
-                        users = usersResponse.usersList;
-                        adapter.addAllItems(users);
-                    }
-
-                    @Override
-                    public void onFailure(Call<UsersResponse> call, Throwable t) {
-                        Log.d("OnFailure", t.getMessage());
-                        Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                });
+                callServer(page);
             }
         });
 
@@ -88,13 +78,16 @@ public class MainActivity extends AppCompatActivity
         retrofit = new Retrofit.Builder().baseUrl(Api.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create()).build();
         api = retrofit.create(Api.class);
-        Call<UsersResponse> call = api.getResponse(page, "20", "abc");
+        callServer(page);
+    }
+
+    private void callServer(int pageCount) {
+        Call<UsersResponse> call = api.getResponse(pageCount, "20");
         call.enqueue(new Callback<UsersResponse>() {
             @Override
             public void onResponse(Call<UsersResponse> call, Response<UsersResponse> response) {
                 UsersResponse usersResponse = response.body();
                 users = usersResponse.usersList;
-
                 adapter.addAllItems(users);
             }
 
